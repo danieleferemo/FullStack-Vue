@@ -1,0 +1,102 @@
+<template>
+  <div id="app">
+    <div class="navigation-buttons" v-if="$route.path !== '/login'">
+      <button class="button is-text is-pulled-left" @click="logout">Logout</button>
+      <div class="is-pulled-right">
+        <router-link class="button" to="/products">
+          <i class="fa fa-user-circle"></i><span>Shop</span>
+        </router-link>
+        <router-link class="button is-primary" to="/cart">
+          <i class="fa fa-shopping-cart"></i><span>{{ cartQuantity }}</span>
+        </router-link>
+      </div>
+    </div>
+    <div class="container">
+      <div class="column is-6 column--align-center">
+        <router-view></router-view>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import CartList from './components/cart/CartList';
+import ProductList from './components/product/ProductList';
+import { mapGetters } from 'vuex';
+
+export default {
+  name: 'app',
+  components: {
+    CartList,
+    ProductList,
+  },
+  computed: {    
+    ...mapGetters(['token', 'cartQuantity'])
+  },
+  created() {
+    const token = localStorage.getItem("token");
+    if (token) {
+      this.updateInitialState (token);
+    }
+  },
+  watch: {
+    token () {
+      if(this.token) { 
+        this.updateInitialState (this.token);
+      }
+    }
+  },
+  methods: {
+    logout () {
+      this.$store.dispatch("logout")
+                  .then(() => {
+                    this.$router.push("/login")
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                  });
+    },
+    updateInitialState (token) {
+      this.$store.dispatch('getCartItems', token);
+      this.$store.dispatch('getProductItems', token);
+    }
+  }
+}
+</script>
+
+<style>
+html, body {
+  height: 100%;
+  background: #F2F6FA;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+}
+
+.column--align-center {
+  margin: 0 auto;
+}
+
+.navigation-buttons {
+  position: absolute;
+  top: 5px;
+  width: 99%;
+  z-index: 99;
+}
+
+.navigation-buttons .button {
+  margin: 0 2px;
+}
+
+.navigation-buttons .button .fa {
+  padding-right: 5px;
+}
+</style>
